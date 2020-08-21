@@ -23,6 +23,7 @@ Usage
 -----
 
 ::
+
  from trc import TRCData
 
  mocap_data = TRCData()
