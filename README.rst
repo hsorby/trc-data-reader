@@ -2,10 +2,16 @@
 TRC Data Reader
 ===============
 
+.. image:: https://img.shields.io/badge/license-Apache%202-yellow
+  :target: https://opensource.org/licenses/Apache-2.0
+
 .. image:: https://badge.fury.io/py/trc-data-reader.svg
   :target: https://pypi.org/project/trc-data-reader/
 
 .. image:: https://github.com/hsorby/trc-data-reader/workflows/trc-data-reader/badge.svg
+  :target: https://pypi.org/project/trc-data-reader/
+
+.. image:: https://raw.githubusercontent.com/hsorby/badges/master/trc-data-reader/coverage.svg
   :target: https://pypi.org/project/trc-data-reader/
 
 Python package for reading trc motion capture data.
