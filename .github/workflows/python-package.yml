@@ -53,8 +53,3 @@ jobs:
         fi
       env:
         BADGES_PAT: ${{ secrets.BADGES_REPO_PERSONAL_ACCESS_TOKEN }}
-    - name: Deploy to PyPi
-      if: ${{ matrix.python-version == 3.8 }}
-      run: |
-        echo "Doing release of package"
-        echo ${{ github.event }}
