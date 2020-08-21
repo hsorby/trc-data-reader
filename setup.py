@@ -1,5 +1,5 @@
 from os import path
-from setuptools import setup
+from setuptools import setup, find_packages
 
 this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.rst'), encoding='utf-8') as f:
@@ -7,7 +7,8 @@ with open(path.join(this_directory, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='trc-data-reader',
-    version='0.1.3-alpha1',
+    version='0.1.3-alpha2',
+    packages=find_packages('src'),
     package_dir={'': 'src'},
     url='https://github.com/hsorby/trc-data-reader',
     license='Apache 2.0',
