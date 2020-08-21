@@ -55,4 +55,6 @@ jobs:
       if: ${{ matrix.python-version == 3.8 }
       run: |
         echo "Doing release of package"
-        echo ${{ github.event }}
+        echo $EVENT_DETAILS
+      env:
+        EVENT_DETAILS: ${{ github.event }}
