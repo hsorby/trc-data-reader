@@ -4,7 +4,7 @@
 name: trc-data-reader-deploy
 
 on:
-release:
+  release:
     types: # This configuration does not affect the page_build event above
       - created
 
