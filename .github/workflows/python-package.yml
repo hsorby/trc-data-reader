@@ -38,11 +38,12 @@ jobs:
       run: |
         pytest
     - name: Coverage with coverage
+      if: ${{ matrix.python-version == 3.8 }}
       run: |
         coverage run --source src -m unittest discover
         coverage report -m
         git clone https://github.com/hsorby/badges.git badges
-        coverage-badge -o badges/trc-data-reader/coverage.svg
+        coverage-badge -o badges/trc-data-reader/coverage.svg -f
         cd badges
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
