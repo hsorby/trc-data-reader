@@ -27,11 +27,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install twine wheel
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Test with pytest
+    - name: Test
       run: |
         python -m unittest discover
-    - name: Deploy to PyPi
+    - name: Publish to PyPi
       run: |
-        echo "Doing release of package"
         python setup.py sdist bdist_wheel
-        ls dist/*
+        twine upload dist/*
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
