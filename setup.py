@@ -7,7 +7,7 @@ with open(path.join(this_directory, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='trc-data-reader',
-    version='0.1.3',
+    version='0.1.4',
     py_modules=['trc'],
     package_dir={'': 'src'},
     url='https://github.com/hsorby/trc-data-reader',
