@@ -28,8 +28,7 @@ class TRCData(dict):
 
     def _append_per_label_data(self, markers, data):
         for index, marker_data in enumerate(data):
-            # Add two to the index as we want to skip 'Frame#' and 'Time'
-            self[markers[index + 2]] += [marker_data]
+            self[markers[index]] += [marker_data]
 
     def _process_contents(self, contents):
         markers = []
@@ -82,6 +81,9 @@ class TRCData(dict):
                     raise IOError('File format invalid: Data header marker count (%d) is not equal to data header '
                                   'sub-marker count (%d)' % (len(data_header_markers), len(data_header_sub_marker)))
 
+                # Remove 'Frame#' and 'Time' from array of markers.
+                data_header_markers.pop(0)
+                data_header_markers.pop(0)
                 markers = []
                 for marker in data_header_markers:
                     marker = marker.strip()
@@ -101,8 +103,16 @@ class TRCData(dict):
                 if header_read_successfully:
                     sections = line.split('\t')
 
-                    frame = int(sections.pop(0))
-                    self['Frame#'].append(frame)
+                    try:
+                        frame = int(sections.pop(0))
+                        self['Frame#'].append(frame)
+                    except ValueError:
+                        if int(self['NumFrames']) == len(self['Frame#']):
+                            # We have reached the end of the specified frames
+                            continue
+                        else:
+                            raise IOError(
+                                f"File format invalid: Data frame {len(self['Frame#'])} is not valid.")
 
                     time = float(sections.pop(0))
                     self['Time'].append(time)
@@ -123,7 +133,7 @@ class TRCData(dict):
                         self[frame] = (time, line_data)
                         self._append_per_label_data(markers, line_data)
                     else:
-                        raise IOError('File format invalid: data frame %d does not match the data format' % len_section)
+                        raise IOError('File format invalid: Data frame %d does not match the data format' % len_section)
 
     def parse(self, data):
         """
