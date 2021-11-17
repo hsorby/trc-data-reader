@@ -1,3 +1,5 @@
+import os
+
 
 def _convert_to_number(string):
     try:
@@ -150,8 +152,10 @@ class TRCData(dict):
 
         :param filename: The name of the file to load.
         """
-        with open(filename) as f:
-            contents = f.readlines()
+        print('loading file:', filename)
+        with open(filename, 'rb') as f:
+            contents = f.read().decode()
+            contents = contents.split(os.linesep)
             self._process_contents(contents)
 
 # #!/usr/bin/env python
