@@ -1,5 +1,19 @@
 import os
 
+_HEADER_KEYS = ['DataRate', 'CameraRate', 'NumFrames', 'NumMarkers', 'Units', 'OrigDataRate', 'OrigDataStartFrame', 'OrigNumFrames']
+_HEADER_TYPES = [float, float, int, int, str, float, int, int]
+_COORDINATE_LABELS = ['X', 'Y', 'Z']
+
+
+def _convert_header_key_value_to_type(key, value):
+    index = _HEADER_KEYS.index(key)
+    if _HEADER_TYPES[index] is float:
+        return float(value)
+    elif _HEADER_TYPES[index] is int:
+        return int(value)
+
+    return str(value)
+
 
 def _convert_to_number(string):
     try:
@@ -152,11 +166,53 @@ class TRCData(dict):
 
         :param filename: The name of the file to load.
         """
-        print('loading file:', filename)
         with open(filename, 'rb') as f:
             contents = f.read().decode()
-            contents = contents.split(os.linesep)
-            self._process_contents(contents)
+
+        contents = contents.split(os.linesep)
+        self._process_contents(contents)
+
+    def save(self, filename):
+        if 'PathFileType' in self:
+            header_line_1 = f"PathFileType\t{self['PathFileType']}\t{self['DataFormat']}\t{self['FileName']}{os.linesep}"
+        else:
+            raise NotImplementedError('Do not know this file type.')
+
+        # Check that all known header keys are present
+        for header_key in _HEADER_KEYS:
+            if header_key not in self:
+                raise KeyError(f'Could not find required header key: {header_key}')
+
+        data_format_count = len(self['DataFormat'].split('/'))
+
+        header_line_2 = '\t'.join(_HEADER_KEYS) + os.linesep
+        header_line_3 = '\t'.join([str(_convert_header_key_value_to_type(key, self[key])) for key in _HEADER_KEYS]) + os.linesep
+
+        coordinate_labels = _COORDINATE_LABELS[:data_format_count]
+        markers_header = [entry for marker in self['Markers'] for entry in [marker, '', '']]
+        marker_sub_heading = [f'{coordinate}{i + 1}' for i in range(len(self['Markers'])) for coordinate in coordinate_labels]
+        data_header_line_1 = 'Frame#\tTime\t' + '\t'.join(markers_header).strip() + os.linesep
+        data_header_line_2 = '\t\t' + '\t'.join(marker_sub_heading) + os.linesep
+
+        blank_line = os.linesep
+
+        with open(filename, 'w') as f:
+
+            f.write(header_line_1)
+            f.write(header_line_2)
+            f.write(header_line_3)
+
+            f.write(data_header_line_1)
+            f.write(data_header_line_2)
+
+            f.write(blank_line)
+
+            for frame in self['Frame#']:
+                time, line_data = self[frame]
+                values = [f'{v:.5f}' for values in line_data for v in values]
+                numeric_values = '\t'.join(values)
+                f.write(f'{frame}\t{time:.3f}\t{numeric_values}{os.linesep}')
+
 
 # #!/usr/bin/env python
 # '''This creates an app to launch a python script. The app is

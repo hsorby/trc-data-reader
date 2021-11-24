@@ -104,5 +104,35 @@ class TestTRCData(unittest.TestCase):
         self.assertEqual(37, len(data['Markers']))
 
 
+class TestStoreTRC(unittest.TestCase):
+
+    def test_save_file_01(self):
+        output_file = os.path.join(resource_path, 'test_file_01_out.trc')
+        data_orig = TRCData()
+        data_orig.load(os.path.join(resource_path, 'test_file_01.trc'))
+        data_orig.save(output_file)
+
+        data_copy = TRCData()
+        data_copy.load(output_file)
+
+        self.assertEqual(data_orig['NumFrames'], data_copy['NumFrames'])
+        self.assertEqual(len(data_orig['Markers']), len(data_copy['Markers']))
+
+        os.remove(output_file)
+
+    def test_save_file_02(self):
+        data = TRCData()
+        with self.assertRaises(NotImplementedError):
+            data.save(os.path.join(resource_path, 'never_exists.trc'))
+
+    def test_save_file_03(self):
+        data = TRCData()
+        data['PathFileType'] = '3'
+        data['DataFormat'] = 'X'
+        data['FileName'] = 'never_exists.trc'
+        with self.assertRaises(KeyError):
+            data.save(os.path.join(resource_path, 'never_exists.trc'))
+
+
 if __name__ == '__main__':
     unittest.main()

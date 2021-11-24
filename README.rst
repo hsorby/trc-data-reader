@@ -14,7 +14,7 @@ TRC Data Reader
 .. image:: https://raw.githubusercontent.com/hsorby/badges/master/trc-data-reader/coverage.svg
   :target: https://pypi.org/project/trc-data-reader/
 
-Python package for reading trc motion capture data.
+Python package for reading track row column (trc) motion capture data.
 TRC data reader captures the motion capture data and puts it into a dict like object.
 
 TRC data reader can read motion capture data from file or from a multi-line string.
