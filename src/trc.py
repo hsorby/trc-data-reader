@@ -1,5 +1,7 @@
 import os
 
+
+_REQUIRED_HEADER_KEYS = ['DataRate', 'CameraRate', 'NumFrames', 'NumMarkers', 'Units', 'OrigDataRate']
 _HEADER_KEYS = ['DataRate', 'CameraRate', 'NumFrames', 'NumMarkers', 'Units', 'OrigDataRate', 'OrigDataStartFrame', 'OrigNumFrames']
 _HEADER_TYPES = [float, float, int, int, str, float, int, int]
 _COORDINATE_LABELS = ['X', 'Y', 'Z']
