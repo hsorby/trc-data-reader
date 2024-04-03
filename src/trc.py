@@ -234,7 +234,7 @@ class TRCData(dict):
 
         blank_line = os.linesep
 
-        with open(filename, 'w') as f:
+        with open(filename, 'w', newline='') as f:
 
             f.write(header_line_1)
             f.write(header_line_2)
