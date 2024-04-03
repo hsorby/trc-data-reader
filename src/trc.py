@@ -1,4 +1,5 @@
 import os
+import c3d
 
 
 _REQUIRED_HEADER_KEYS = ['DataRate', 'CameraRate', 'NumFrames', 'NumMarkers', 'Units', 'OrigDataRate']
@@ -173,6 +174,41 @@ class TRCData(dict):
 
         contents = contents.split(os.linesep)
         self._process_contents(contents)
+
+    def import_from_c3d(self, file_path):
+        """
+        Extracts TRC data from a C3D file.
+
+        :param file_path: The C3D file to be parsed.
+        """
+        with open(file_path, 'rb') as handle:
+            reader = c3d.Reader(handle)
+
+            # Set file metadata.
+            self['PathFileType'] = 3
+            self['DataFormat'] = "(X/Y/Z)"
+            self['FileName'] = os.path.basename(file_path)
+
+            # Set file header values.
+            self['DataRate'] = reader.header.frame_rate
+            self['CameraRate'] = reader.header.frame_rate
+            self['NumFrames'] = reader.header.last_frame
+            self['NumMarkers'] = reader.get('POINT').get('USED').int16_value
+            self['Units'] = reader.get('POINT').get('UNITS').string_value
+            self['OrigDataRate'] = reader.header.frame_rate
+            self['OrigDataStartFrame'] = reader.header.first_frame
+            self['OrigNumFrames'] = reader.header.last_frame
+
+            # Set data column labels.
+            self['Markers'] = [label.strip() for label in reader.point_labels]
+
+            # Set frame numbers.
+            self['Frame#'] = [i for i in range(1, self['NumFrames'] + 1)]
+
+            # Set marker data.
+            for i, points, analog in reader.read_frames():
+                time = (i - 1) * (1 / reader.point_rate)
+                self[i] = time, [point[:3].tolist() for point in points]
 
     def save(self, filename):
         if 'PathFileType' in self:
