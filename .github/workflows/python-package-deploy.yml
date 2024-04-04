@@ -5,7 +5,7 @@ name: trc-data-reader-deploy
 
 on:
   release:
-    types: # This configuration does not affect the page_build event above
+    types:
       - created
 
 jobs:
@@ -17,9 +17,9 @@ jobs:
         python-version: [3.9]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies

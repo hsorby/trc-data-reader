@@ -1,4 +1,5 @@
 import os
+import c3d
 
 
 _REQUIRED_HEADER_KEYS = ['DataRate', 'CameraRate', 'NumFrames', 'NumMarkers', 'Units', 'OrigDataRate']
@@ -177,6 +178,50 @@ class TRCData(dict):
         contents = contents.split(os.linesep)
         self._process_contents(contents)
 
+    def _import_from_c3d(self, filename):
+        """
+        Extracts TRC data from a C3D file.
+
+        :param filename: The C3D file to be parsed.
+        """
+        with open(filename, 'rb') as handle:
+            reader = c3d.Reader(handle)
+
+            # Set file metadata.
+            self['PathFileType'] = 3
+            self['DataFormat'] = "(X/Y/Z)"
+            self['FileName'] = os.path.basename(filename)
+
+            # Set file header values.
+            self['DataRate'] = reader.header.frame_rate
+            self['CameraRate'] = reader.header.frame_rate
+            self['NumFrames'] = reader.header.last_frame
+            self['NumMarkers'] = reader.get('POINT').get('USED').int16_value
+            self['Units'] = reader.get('POINT').get('UNITS').string_value
+            self['OrigDataRate'] = reader.header.frame_rate
+            self['OrigDataStartFrame'] = reader.header.first_frame
+            self['OrigNumFrames'] = reader.header.last_frame
+
+            # Set data column labels.
+            self['Markers'] = [label.strip() for label in reader.point_labels]
+
+            # Set frame numbers.
+            self['Frame#'] = [i for i in range(1, self['NumFrames'] + 1)]
+
+            # Set marker data.
+            for i, points, analog in reader.read_frames():
+                time = (i - 1) * (1 / reader.point_rate)
+                self[i] = time, [point[:3].tolist() for point in points]
+
+    def import_from(self, filename):
+        """
+        Import data from a non-TRC file source.
+        Currently, the only alternative supported format is c3d.
+
+        :param filename: The source file of the data to be imported.
+        """
+        self._import_from_c3d(filename)
+
     def save(self, filename):
         if 'PathFileType' in self:
             header_line_1 = f"PathFileType\t{self['PathFileType']}\t{self['DataFormat']}\t{self['FileName']}{os.linesep}"
@@ -201,7 +246,7 @@ class TRCData(dict):
 
         blank_line = os.linesep
 
-        with open(filename, 'w') as f:
+        with open(filename, 'w', newline='') as f:
 
             f.write(header_line_1)
             f.write(header_line_2)
