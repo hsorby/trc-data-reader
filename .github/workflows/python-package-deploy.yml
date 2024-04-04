@@ -4,14 +4,15 @@
 name: trc-data-reader-deploy
 
 on:
-  release:
-    types:
-      - created
+  push:
+    tags:
+      - "v*.*.*"
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
+    if: github.repository == 'hsorby/trc-data-reader'
     strategy:
       matrix:
         python-version: [3.9]
@@ -30,6 +31,24 @@ jobs:
     - name: Test
       run: |
         python -m unittest discover
+    - name: Create Release
+      id: create_release
+      uses: KaiWedekind/create-release@v1.0.0
+      env:
+        GITHUB_TOKEN: ${{ github.token }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+    - name: "Generate release changelog"
+      uses: heinrichreimer/action-github-changelog-generator@v2.3
+      with:
+        token: ${{ github.token }}
+    - name: Add changelog to release
+      uses: irongut/EditRelease@v1.2.0
+      with:
+        token: ${{ github.token }}
+        id: ${{ steps.create_release.outputs.id }}
+        files: "CHANGELOG.md"
     - name: Publish to PyPi
       run: |
         python setup.py sdist bdist_wheel
