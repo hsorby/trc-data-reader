@@ -62,7 +62,7 @@ class TRCData(dict):
                 # File Header 1
                 sections = line.split('\t')
                 if len(sections) != 4:
-                    raise IOError('File format invalid: Header line 1 does not start have four sections.')
+                    raise IOError('File format invalid: Header line 1 does not have four tab delimited sections.')
                 self[sections[0]] = sections[1]
                 self['DataFormat'] = sections[2]
                 data_format_count = len(sections[2].split('/'))
@@ -153,23 +153,26 @@ class TRCData(dict):
                     else:
                         raise IOError('File format invalid: Data frame %d does not match the data format' % len_section)
 
-    def parse(self, data):
+    def parse(self, data, line_sep=os.linesep):
         """
         Parse trc formatted motion capture data into a dictionary like object.
 
         :param data: The multi-line string of the data to parse.
+        :param line_sep: The line separator to split lines with.
         """
-        contents = data.split('\n')
+        contents = data.split(line_sep)
         self._process_contents(contents)
 
-    def load(self, filename):
+    def load(self, filename, encoding="utf-8", errors="strict"):
         """
         Load a trc motion capture data file into a dictionary like object.
 
         :param filename: The name of the file to load.
+        :param encoding: Default encoding is 'utf-8', see https://docs.python.org/3/library/codecs.html#standard-encodings.
+        :param errors: Default error handling is 'strict',see https://docs.python.org/3/library/codecs.html#error-handlers.
         """
         with open(filename, 'rb') as f:
-            contents = f.read().decode()
+            contents = f.read().decode(encoding=encoding, errors=errors)
 
         contents = contents.split(os.linesep)
         self._process_contents(contents)
