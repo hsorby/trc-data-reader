@@ -49,14 +49,14 @@ class TestC3DImport(unittest.TestCase):
 
     def test_import_file_01(self):
         data = TRCData()
-        data.import_from_c3d(os.path.join(resource_path, 'c3d_test_file_01.c3d'))
+        data.import_from(os.path.join(resource_path, 'c3d_test_file_01.c3d'))
         self.assertIn('FileName', data)
         self.assertEqual(8, data['NumFrames'])
         self.assertEqual(8, len(data['Markers']))
 
     def test_import_file_02(self):
         data = TRCData()
-        data.import_from_c3d(os.path.join(resource_path, 'c3d_test_file_02.c3d'))
+        data.import_from(os.path.join(resource_path, 'c3d_test_file_02.c3d'))
         self.assertIn('FileName', data)
         self.assertEqual(100, data['NumFrames'])
         self.assertEqual(75, len(data['Markers']))
@@ -153,7 +153,7 @@ class TestStoreTRC(unittest.TestCase):
     def test_save_file_04(self):
         output_file = os.path.join(resource_path, 'c3d_test_file_01_out.trc')
         data_orig = TRCData()
-        data_orig.import_from_c3d(os.path.join(resource_path, 'c3d_test_file_01.c3d'))
+        data_orig.import_from(os.path.join(resource_path, 'c3d_test_file_01.c3d'))
         data_orig.save(output_file)
 
         data_copy = TRCData()

@@ -175,19 +175,19 @@ class TRCData(dict):
         contents = contents.split(os.linesep)
         self._process_contents(contents)
 
-    def import_from_c3d(self, file_path):
+    def _import_from_c3d(self, filename):
         """
         Extracts TRC data from a C3D file.
 
-        :param file_path: The C3D file to be parsed.
+        :param filename: The C3D file to be parsed.
         """
-        with open(file_path, 'rb') as handle:
+        with open(filename, 'rb') as handle:
             reader = c3d.Reader(handle)
 
             # Set file metadata.
             self['PathFileType'] = 3
             self['DataFormat'] = "(X/Y/Z)"
-            self['FileName'] = os.path.basename(file_path)
+            self['FileName'] = os.path.basename(filename)
 
             # Set file header values.
             self['DataRate'] = reader.header.frame_rate
@@ -209,6 +209,15 @@ class TRCData(dict):
             for i, points, analog in reader.read_frames():
                 time = (i - 1) * (1 / reader.point_rate)
                 self[i] = time, [point[:3].tolist() for point in points]
+
+    def import_from(self, filename):
+        """
+        Import data from a non-TRC file source.
+        Currently, the only alternative supported format is c3d.
+
+        :param filename: The source file of the data to be imported.
+        """
+        self._import_from_c3d(filename)
 
     def save(self, filename):
         if 'PathFileType' in self:
