@@ -17,7 +17,7 @@ requirements = readfile("requirements.txt")
 
 setup(
     name='trc-data-reader',
-    version='0.3.0',
+    version='0.3.1',
     py_modules=['trc'],
     package_dir={'': 'src'},
     url='https://github.com/hsorby/trc-data-reader',
