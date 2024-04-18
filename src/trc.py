@@ -200,13 +200,13 @@ class TRCData(dict):
             self['Units'] = reader.get('POINT').get('UNITS').string_value
             self['OrigDataRate'] = reader.header.frame_rate
             self['OrigDataStartFrame'] = reader.header.first_frame
-            self['OrigNumFrames'] = reader.header.last_frame
+            self['OrigNumFrames'] = reader.header.last_frame - reader.header.first_frame + 1
 
             # Set data column labels.
             self['Markers'] = [label.strip() for label in reader.point_labels]
 
             # Set frame numbers.
-            self['Frame#'] = [i for i in range(1, self['NumFrames'] + 1)]
+            self['Frame#'] = [i for i in range(reader.header.first_frame, reader.header.last_frame + 1)]
 
             # Set marker data.
             for i, points, analog in reader.read_frames():
