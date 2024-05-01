@@ -195,7 +195,7 @@ class TRCData(dict):
             # Set file header values.
             self['DataRate'] = reader.header.frame_rate
             self['CameraRate'] = reader.header.frame_rate
-            self['NumFrames'] = reader.header.last_frame
+            self['NumFrames'] = reader.header.last_frame - reader.header.first_frame + 1
             self['Units'] = reader.get('POINT').get('UNITS').string_value
             self['OrigDataRate'] = reader.header.frame_rate
             self['OrigDataStartFrame'] = reader.header.first_frame
