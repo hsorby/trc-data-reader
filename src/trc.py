@@ -253,7 +253,7 @@ class TRCData(dict):
         coordinate_labels = _COORDINATE_LABELS[:data_format_count]
         markers_header = [entry for marker in self['Markers'] for entry in [marker, '', '']]
         marker_sub_heading = [f'{coordinate}{i + 1}' for i in range(len(self['Markers'])) for coordinate in coordinate_labels]
-        data_header_line_1 = 'Frame#\tTime\t' + '\t'.join(markers_header).strip() + os.linesep
+        data_header_line_1 = 'Frame#\tTime\t' + '\t'.join(markers_header) + os.linesep
         data_header_line_2 = '\t\t' + '\t'.join(marker_sub_heading) + os.linesep
 
         blank_line = os.linesep
