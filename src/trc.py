@@ -196,22 +196,34 @@ class TRCData(dict):
             self['DataRate'] = reader.header.frame_rate
             self['CameraRate'] = reader.header.frame_rate
             self['NumFrames'] = reader.header.last_frame
-            self['NumMarkers'] = reader.get('POINT').get('USED').int16_value
             self['Units'] = reader.get('POINT').get('UNITS').string_value
             self['OrigDataRate'] = reader.header.frame_rate
             self['OrigDataStartFrame'] = reader.header.first_frame
             self['OrigNumFrames'] = reader.header.last_frame - reader.header.first_frame + 1
 
-            # Set data column labels.
-            self['Markers'] = [label.strip() for label in reader.point_labels]
-
             # Set frame numbers.
             self['Frame#'] = [i for i in range(reader.header.first_frame, reader.header.last_frame + 1)]
+
+            # Filter out model outputs (Angles, Forces, Moments, Powers, Scalars) from point labels.
+            point_group = reader.get('POINT')
+            model_outputs = set()
+            for param in ['ANGLES', 'FORCES', 'MOMENTS', 'POWERS', 'SCALARS']:
+                if param in point_group.param_keys():
+                    model_outputs.update(point_group.get(param).string_array)
+            point_labels = []
+            for param in ['LABELS', 'LABELS2']:
+                if param in point_group.param_keys():
+                    filtered_labels = [None if label in model_outputs else label.strip() for label in point_group.get(param).string_array]
+                    point_labels.extend(filtered_labels)
+
+            # Set marker labels.
+            self['Markers'] = [label for label in point_labels if label]
+            self['NumMarkers'] = len(self['Markers'])
 
             # Set marker data.
             for i, points, analog in reader.read_frames():
                 time = (i - 1) * (1 / reader.point_rate)
-                self[i] = time, [point[:3].tolist() for point in points]
+                self[i] = time, [points[j][:3].tolist() for j in range(len(points)) if point_labels[j] is not None]
 
     def import_from(self, filename):
         """
