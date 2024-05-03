@@ -164,6 +164,8 @@ class TRCData(dict):
         :param line_sep: The line separator to split lines with.
         """
         contents = data.split(line_sep)
+        if len(contents) == 1:
+            contents = data.split('\n')
         self._process_contents(contents)
 
     def load(self, filename, encoding="utf-8", errors="strict"):
