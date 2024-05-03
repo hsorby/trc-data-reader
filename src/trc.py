@@ -1,4 +1,6 @@
 import os
+import math
+
 import c3d
 
 
@@ -223,7 +225,17 @@ class TRCData(dict):
             # Set marker data.
             for i, points, analog in reader.read_frames():
                 time = (i - 1) * (1 / reader.point_rate)
-                self[i] = time, [points[j][:3].tolist() for j in range(len(points)) if point_labels[j] is not None]
+                point_data = []
+                for j in range(len(points)):
+                    if point_labels[j]:
+                        coordinates = points[j][:3].tolist()
+                        errors = points[j][3:]
+                        for error in errors:
+                            if error == -1:
+                                coordinates = _convert_coordinates(['', '', ''])
+                                break
+                        point_data.append(coordinates)
+                self[i] = time, point_data
 
     def import_from(self, filename):
         """
@@ -271,7 +283,7 @@ class TRCData(dict):
 
             for frame in self['Frame#']:
                 time, line_data = self[frame]
-                values = [f'{v:.5f}' for values in line_data for v in values]
+                values = ['' if math.isnan(v) else f'{v:.5f}' for line_data in line_data for v in line_data]
                 numeric_values = '\t'.join(values)
                 f.write(f'{frame}\t{time:.3f}\t{numeric_values}{os.linesep}')
 
