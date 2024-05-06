@@ -5,10 +5,12 @@ from trc import TRCData
 
 try:
     from .data_store import TEST_DATA_01, TEST_DATA_02, TEST_DATA_03, TEST_DATA_04, \
-        TEST_DATA_05, TEST_DATA_06, TEST_DATA_07, TEST_DATA_08, TEST_DATA_09, TEST_DATA_10
+        TEST_DATA_05, TEST_DATA_06, TEST_DATA_07, TEST_DATA_08, TEST_DATA_09, TEST_DATA_10, \
+        TEST_DATA_11
 except ImportError:
     from data_store import TEST_DATA_01, TEST_DATA_02, TEST_DATA_03, TEST_DATA_04, \
-        TEST_DATA_05, TEST_DATA_06, TEST_DATA_07, TEST_DATA_08, TEST_DATA_09, TEST_DATA_10
+        TEST_DATA_05, TEST_DATA_06, TEST_DATA_07, TEST_DATA_08, TEST_DATA_09, TEST_DATA_10, \
+        TEST_DATA_11
 
 here = os.path.dirname(os.path.realpath(__file__))
 resource_path = os.path.join(here, 'resources')
@@ -137,6 +139,14 @@ class TestTRCData(unittest.TestCase):
         self.assertIn('FileName', data)
         self.assertEqual(2, data['NumFrames'])
         self.assertEqual(37, len(data['Markers']))
+
+    def test_parse_data_11(self):
+        # Test parsing a file with "non-native" line endings.
+        data = TRCData()
+        data.parse(TEST_DATA_11, line_sep='\r\n')
+        self.assertIn('FileName', data)
+        self.assertEqual(2, data['NumFrames'])
+        self.assertEqual(2, len(data['Markers']))
 
 
 class TestStoreTRC(unittest.TestCase):
