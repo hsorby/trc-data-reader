@@ -165,6 +165,7 @@ class TRCData(dict):
         """
         contents = data.split(line_sep)
         if len(contents) == 1:
+            data.replace('\r\n', '\n')
             contents = data.split('\n')
         self._process_contents(contents)
 
