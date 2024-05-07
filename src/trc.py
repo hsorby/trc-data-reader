@@ -1,4 +1,6 @@
 import os
+import math
+
 import c3d
 
 
@@ -162,6 +164,9 @@ class TRCData(dict):
         :param line_sep: The line separator to split lines with.
         """
         contents = data.split(line_sep)
+        if len(contents) == 1:
+            data.replace('\r\n', '\n')
+            contents = data.split('\n')
         self._process_contents(contents)
 
     def load(self, filename, encoding="utf-8", errors="strict"):
@@ -178,11 +183,14 @@ class TRCData(dict):
         contents = contents.split(os.linesep)
         self._process_contents(contents)
 
-    def _import_from_c3d(self, filename):
+    def _import_from_c3d(self, filename, filter_output=None, label_params=None):
         """
         Extracts TRC data from a C3D file.
 
         :param filename: The C3D file to be parsed.
+        :param filter_output: Optional; A list of model-output parameters to be filtered out from
+            the list of marker labels (e.g., ANGLES, FORCES, MOMENTS, POWERS, SCALARS).
+        :param label_params: Optional; A list of label parameters to be checked for marker labels.
         """
         with open(filename, 'rb') as handle:
             reader = c3d.Reader(handle)
@@ -195,32 +203,62 @@ class TRCData(dict):
             # Set file header values.
             self['DataRate'] = reader.header.frame_rate
             self['CameraRate'] = reader.header.frame_rate
-            self['NumFrames'] = reader.header.last_frame
-            self['NumMarkers'] = reader.get('POINT').get('USED').int16_value
+            self['NumFrames'] = reader.header.last_frame - reader.header.first_frame + 1
             self['Units'] = reader.get('POINT').get('UNITS').string_value
             self['OrigDataRate'] = reader.header.frame_rate
             self['OrigDataStartFrame'] = reader.header.first_frame
             self['OrigNumFrames'] = reader.header.last_frame - reader.header.first_frame + 1
 
-            # Set data column labels.
-            self['Markers'] = [label.strip() for label in reader.point_labels]
-
             # Set frame numbers.
             self['Frame#'] = [i for i in range(reader.header.first_frame, reader.header.last_frame + 1)]
+
+            if filter_output is None:
+                filter_output = ['ANGLES', 'FORCES', 'MOMENTS', 'POWERS', 'SCALARS']
+            if label_params is None:
+                label_params = ['LABELS', 'LABELS2']
+
+            # Filter out model outputs (Angles, Forces, Moments, Powers, Scalars) from point labels.
+            point_group = reader.get('POINT')
+            model_outputs = set()
+            for param in filter_output:
+                if param in point_group.param_keys():
+                    model_outputs.update(point_group.get(param).string_array)
+            point_labels = []
+            for param in label_params:
+                if param in point_group.param_keys():
+                    filtered_labels = [None if label in model_outputs else label.strip() for label in point_group.get(param).string_array]
+                    point_labels.extend(filtered_labels)
+
+            # Set marker labels.
+            self['Markers'] = [label for label in point_labels if label]
+            self['NumMarkers'] = len(self['Markers'])
 
             # Set marker data.
             for i, points, analog in reader.read_frames():
                 time = (i - 1) * (1 / reader.point_rate)
-                self[i] = time, [point[:3].tolist() for point in points]
+                point_data = []
+                for j in range(len(points)):
+                    if point_labels[j]:
+                        coordinates = points[j][:3].tolist()
+                        errors = points[j][3:]
+                        for error in errors:
+                            if error == -1:
+                                coordinates = _convert_coordinates(['', '', ''])
+                                break
+                        point_data.append(coordinates)
+                self[i] = time, point_data
 
-    def import_from(self, filename):
+    def import_from(self, filename, *args, **kwargs):
         """
         Import data from a non-TRC file source.
-        Currently, the only alternative supported format is c3d.
+        Currently, the only alternative supported format is c3d. The C3D import method also
+        accepts: `filter_output`, an optional argument allowing the user to specify C3D model-
+        output groups that should be filtered out from the list of marker labels; and
+        `label_params`, an optional list of the C3D parameters containing the marker labels.
 
         :param filename: The source file of the data to be imported.
         """
-        self._import_from_c3d(filename)
+        self._import_from_c3d(filename, *args, **kwargs)
 
     def save(self, filename):
         if 'PathFileType' in self:
@@ -241,7 +279,7 @@ class TRCData(dict):
         coordinate_labels = _COORDINATE_LABELS[:data_format_count]
         markers_header = [entry for marker in self['Markers'] for entry in [marker, '', '']]
         marker_sub_heading = [f'{coordinate}{i + 1}' for i in range(len(self['Markers'])) for coordinate in coordinate_labels]
-        data_header_line_1 = 'Frame#\tTime\t' + '\t'.join(markers_header).strip() + os.linesep
+        data_header_line_1 = 'Frame#\tTime\t' + '\t'.join(markers_header) + os.linesep
         data_header_line_2 = '\t\t' + '\t'.join(marker_sub_heading) + os.linesep
 
         blank_line = os.linesep
@@ -259,7 +297,7 @@ class TRCData(dict):
 
             for frame in self['Frame#']:
                 time, line_data = self[frame]
-                values = [f'{v:.5f}' for values in line_data for v in values]
+                values = ['' if math.isnan(v) else f'{v:.5f}' for values in line_data for v in values]
                 numeric_values = '\t'.join(values)
                 f.write(f'{frame}\t{time:.3f}\t{numeric_values}{os.linesep}')
 
