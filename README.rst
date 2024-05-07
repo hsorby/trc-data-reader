@@ -11,7 +11,7 @@ TRC Data Reader
 .. image:: https://github.com/hsorby/trc-data-reader/workflows/trc-data-reader/badge.svg
   :target: https://pypi.org/project/trc-data-reader/
 
-.. image:: https://raw.githubusercontent.com/hsorby/badges/master/trc-data-reader/coverage.svg
+.. image:: https://raw.githubusercontent.com/hsorby/badges/main/trc-data-reader/coverage.svg
   :target: https://pypi.org/project/trc-data-reader/
 
 Python package for reading track row column (trc) motion capture data.
