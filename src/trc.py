@@ -188,6 +188,9 @@ class TRCData(dict):
         Extracts TRC data from a C3D file.
 
         :param filename: The C3D file to be parsed.
+        :param filter_output: Optional; A list of model-output parameters to be filtered out from
+            the list of marker labels (e.g., ANGLES, FORCES, MOMENTS, POWERS, SCALARS).
+        :param label_params: Optional; A list of label parameters to be checked for marker labels.
         """
         with open(filename, 'rb') as handle:
             reader = c3d.Reader(handle)
@@ -248,7 +251,10 @@ class TRCData(dict):
     def import_from(self, filename, *args, **kwargs):
         """
         Import data from a non-TRC file source.
-        Currently, the only alternative supported format is c3d.
+        Currently, the only alternative supported format is c3d. The C3D import method also
+        accepts: `filter_output`, an optional argument allowing the user to specify C3D model-
+        output groups that should be filtered out from the list of marker labels; and
+        `label_params`, an optional list of the C3D parameters containing the marker labels.
 
         :param filename: The source file of the data to be imported.
         """
