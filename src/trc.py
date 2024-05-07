@@ -291,7 +291,7 @@ class TRCData(dict):
 
             for frame in self['Frame#']:
                 time, line_data = self[frame]
-                values = ['' if math.isnan(v) else f'{v:.5f}' for line_data in line_data for v in line_data]
+                values = ['' if math.isnan(v) else f'{v:.5f}' for values in line_data for v in values]
                 numeric_values = '\t'.join(values)
                 f.write(f'{frame}\t{time:.3f}\t{numeric_values}{os.linesep}')
 
