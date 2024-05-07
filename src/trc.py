@@ -195,58 +195,58 @@ class TRCData(dict):
         with open(filename, 'rb') as handle:
             reader = c3d.Reader(handle)
 
-            # Set file metadata.
-            self['PathFileType'] = 3
-            self['DataFormat'] = "(X/Y/Z)"
-            self['FileName'] = os.path.basename(filename)
+        # Set file metadata.
+        self['PathFileType'] = 3
+        self['DataFormat'] = "(X/Y/Z)"
+        self['FileName'] = os.path.basename(filename)
 
-            # Set file header values.
-            self['DataRate'] = reader.header.frame_rate
-            self['CameraRate'] = reader.header.frame_rate
-            self['NumFrames'] = reader.header.last_frame - reader.header.first_frame + 1
-            self['Units'] = reader.get('POINT').get('UNITS').string_value
-            self['OrigDataRate'] = reader.header.frame_rate
-            self['OrigDataStartFrame'] = reader.header.first_frame
-            self['OrigNumFrames'] = reader.header.last_frame - reader.header.first_frame + 1
+        # Set file header values.
+        self['DataRate'] = reader.header.frame_rate
+        self['CameraRate'] = reader.header.frame_rate
+        self['NumFrames'] = reader.header.last_frame - reader.header.first_frame + 1
+        self['Units'] = reader.get('POINT').get('UNITS').string_value
+        self['OrigDataRate'] = reader.header.frame_rate
+        self['OrigDataStartFrame'] = reader.header.first_frame
+        self['OrigNumFrames'] = reader.header.last_frame - reader.header.first_frame + 1
 
-            # Set frame numbers.
-            self['Frame#'] = [i for i in range(reader.header.first_frame, reader.header.last_frame + 1)]
+        # Set frame numbers.
+        self['Frame#'] = [i for i in range(reader.header.first_frame, reader.header.last_frame + 1)]
 
-            if filter_output is None:
-                filter_output = ['ANGLES', 'FORCES', 'MOMENTS', 'POWERS', 'SCALARS']
-            if label_params is None:
-                label_params = ['LABELS', 'LABELS2']
+        if filter_output is None:
+            filter_output = ['ANGLES', 'FORCES', 'MOMENTS', 'POWERS', 'SCALARS']
+        if label_params is None:
+            label_params = ['LABELS', 'LABELS2']
 
-            # Filter out model outputs (Angles, Forces, Moments, Powers, Scalars) from point labels.
-            point_group = reader.get('POINT')
-            model_outputs = set()
-            for param in filter_output:
-                if param in point_group.param_keys():
-                    model_outputs.update(point_group.get(param).string_array)
-            point_labels = []
-            for param in label_params:
-                if param in point_group.param_keys():
-                    filtered_labels = [None if label in model_outputs else label.strip() for label in point_group.get(param).string_array]
-                    point_labels.extend(filtered_labels)
+        # Filter out model outputs (Angles, Forces, Moments, Powers, Scalars) from point labels.
+        point_group = reader.get('POINT')
+        model_outputs = set()
+        for param in filter_output:
+            if param in point_group.param_keys():
+                model_outputs.update(point_group.get(param).string_array)
+        point_labels = []
+        for param in label_params:
+            if param in point_group.param_keys():
+                filtered_labels = [None if label in model_outputs else label.strip() for label in point_group.get(param).string_array]
+                point_labels.extend(filtered_labels)
 
-            # Set marker labels.
-            self['Markers'] = [label for label in point_labels if label]
-            self['NumMarkers'] = len(self['Markers'])
+        # Set marker labels.
+        self['Markers'] = [label for label in point_labels if label]
+        self['NumMarkers'] = len(self['Markers'])
 
-            # Set marker data.
-            for i, points, analog in reader.read_frames():
-                time = (i - 1) * (1 / reader.point_rate)
-                point_data = []
-                for j in range(len(points)):
-                    if point_labels[j]:
-                        coordinates = points[j][:3].tolist()
-                        errors = points[j][3:]
-                        for error in errors:
-                            if error == -1:
-                                coordinates = _convert_coordinates(['', '', ''])
-                                break
-                        point_data.append(coordinates)
-                self[i] = time, point_data
+        # Set marker data.
+        for i, points, analog in reader.read_frames():
+            time = (i - 1) * (1 / reader.point_rate)
+            point_data = []
+            for j in range(len(points)):
+                if point_labels[j]:
+                    coordinates = points[j][:3].tolist()
+                    errors = points[j][3:]
+                    for error in errors:
+                        if error == -1:
+                            coordinates = _convert_coordinates(['', '', ''])
+                            break
+                    point_data.append(coordinates)
+            self[i] = time, point_data
 
     def import_from(self, filename, *args, **kwargs):
         """
