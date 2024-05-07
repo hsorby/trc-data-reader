@@ -45,11 +45,19 @@ jobs:
         git clone https://github.com/hsorby/badges.git badges
         coverage-badge -o badges/trc-data-reader/coverage.svg -f
         cd badges
+        git diff
+        git diff --exit-code
+        if [ -n "$(git diff --exit-code)" ]; then
+          echo "success"
+        else
+          echo "fail"
+        fi
         if [ -n "$(git diff --exit-code)" ]; then
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -m "Updating trc-data-reader coverage badge." -a
-          git push https://hsorby:${BADGES_PAT}@github.com/hsorby/badges.git master
+          git push https://hsorby:${BADGES_PAT}@github.com/hsorby/badges.git main
+          echo "updated"
         fi
       env:
         BADGES_PAT: ${{ secrets.BADGES_REPO_PERSONAL_ACCESS_TOKEN }}
