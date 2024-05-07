@@ -180,9 +180,6 @@ class TRCData(dict):
         with open(filename, 'rb') as f:
             contents = f.read().decode(encoding=encoding, errors=errors)
 
-        if contents is None:
-            contents = None
-
         contents = contents.split(os.linesep)
         self._process_contents(contents)
 
