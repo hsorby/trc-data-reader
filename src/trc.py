@@ -183,7 +183,7 @@ class TRCData(dict):
         contents = contents.split(os.linesep)
         self._process_contents(contents)
 
-    def _import_from_c3d(self, filename):
+    def _import_from_c3d(self, filename, filter_output=None, label_params=None):
         """
         Extracts TRC data from a C3D file.
 
@@ -209,14 +209,19 @@ class TRCData(dict):
             # Set frame numbers.
             self['Frame#'] = [i for i in range(reader.header.first_frame, reader.header.last_frame + 1)]
 
+            if filter_output is None:
+                filter_output = ['ANGLES', 'FORCES', 'MOMENTS', 'POWERS', 'SCALARS']
+            if label_params is None:
+                label_params = ['LABELS', 'LABELS2']
+
             # Filter out model outputs (Angles, Forces, Moments, Powers, Scalars) from point labels.
             point_group = reader.get('POINT')
             model_outputs = set()
-            for param in ['ANGLES', 'FORCES', 'MOMENTS', 'POWERS', 'SCALARS']:
+            for param in filter_output:
                 if param in point_group.param_keys():
                     model_outputs.update(point_group.get(param).string_array)
             point_labels = []
-            for param in ['LABELS', 'LABELS2']:
+            for param in label_params:
                 if param in point_group.param_keys():
                     filtered_labels = [None if label in model_outputs else label.strip() for label in point_group.get(param).string_array]
                     point_labels.extend(filtered_labels)
@@ -240,14 +245,14 @@ class TRCData(dict):
                         point_data.append(coordinates)
                 self[i] = time, point_data
 
-    def import_from(self, filename):
+    def import_from(self, filename, *args, **kwargs):
         """
         Import data from a non-TRC file source.
         Currently, the only alternative supported format is c3d.
 
         :param filename: The source file of the data to be imported.
         """
-        self._import_from_c3d(filename)
+        self._import_from_c3d(filename, *args, **kwargs)
 
     def save(self, filename):
         if 'PathFileType' in self:
