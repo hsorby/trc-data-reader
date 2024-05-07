@@ -46,7 +46,6 @@ jobs:
         coverage-badge -o badges/trc-data-reader/coverage.svg -f
         cd badges
         git diff
-        git diff --exit-code
         if [ -n "$(git diff --exit-code)" ]; then
           echo "success"
         else
