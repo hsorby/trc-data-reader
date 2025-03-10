@@ -202,7 +202,7 @@ class TestStoreTRC(unittest.TestCase):
         with open(output_file, 'r') as file:
             lines = file.readlines()
         for line in lines[6:]:
-            values = line.strip('\n').strip('\r').split('\t')
+            values = line.strip('\n').strip('\r').split('\t')[:-1]
             self.assertEqual(26, len(values))
             self.assertEqual(12, values.count(''))
 
