@@ -232,7 +232,7 @@ class TRCData(dict):
             # Set marker labels.
             self['Markers'] = [label for label in point_labels if label]
             self['NumMarkers'] = len(self['Markers'])
-    
+
             # Set marker data.
             for i, points, analog in reader.read_frames():
                 time = (i - 1) * (1 / reader.point_rate)
@@ -279,8 +279,8 @@ class TRCData(dict):
         coordinate_labels = _COORDINATE_LABELS[:data_format_count]
         markers_header = [entry for marker in self['Markers'] for entry in [marker, '', '']]
         marker_sub_heading = [f'{coordinate}{i + 1}' for i in range(len(self['Markers'])) for coordinate in coordinate_labels]
-        data_header_line_1 = 'Frame#\tTime\t' + '\t'.join(markers_header) + os.linesep
-        data_header_line_2 = '\t\t' + '\t'.join(marker_sub_heading) + os.linesep
+        data_header_line_1 = 'Frame#\tTime\t' + '\t'.join(markers_header) + '\t' + os.linesep
+        data_header_line_2 = '\t\t' + '\t'.join(marker_sub_heading) + '\t' + os.linesep
 
         blank_line = os.linesep
 
@@ -299,7 +299,7 @@ class TRCData(dict):
                 time, line_data = self[frame]
                 values = ['' if math.isnan(v) else f'{v:.5f}' for values in line_data for v in values]
                 numeric_values = '\t'.join(values)
-                f.write(f'{frame}\t{time:.3f}\t{numeric_values}{os.linesep}')
+                f.write(f'{frame}\t{time:.3f}\t{numeric_values}\t{os.linesep}')
 
 
 # #!/usr/bin/env python
