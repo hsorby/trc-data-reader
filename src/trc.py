@@ -252,15 +252,22 @@ class TRCData(dict):
         """
         Import data from a non-TRC file source.
         Currently, the only alternative supported format is c3d. The C3D import method also
-        accepts: `filter_output`, an optional argument allowing the user to specify C3D model-
-        output groups that should be filtered out from the list of marker labels; and
+        accepts: `filter_output`, an optional argument allowing the user to specify C3D
+        model-output groups that should be filtered out from the list of marker labels; and
         `label_params`, an optional list of the C3D parameters containing the marker labels.
 
         :param filename: The source file of the data to be imported.
         """
         self._import_from_c3d(filename, *args, **kwargs)
 
-    def save(self, filename):
+    def save(self, filename, add_trailing_tab=False):
+        """
+        Save TRC motion capture data to a file specified by filename.
+        To work with OpenSIM and Mokka formats set the add trailing tab parameter to True.
+
+        :param filename: String or pathlike to write to.
+        :param add_trailing_tab: Add a trailing tab to the header and data lines [default: False].
+        """
         if 'PathFileType' in self:
             header_line_1 = f"PathFileType\t{self['PathFileType']}\t{self['DataFormat']}\t{self['FileName']}{os.linesep}"
         else:
@@ -276,11 +283,13 @@ class TRCData(dict):
         header_line_2 = '\t'.join(_HEADER_KEYS) + os.linesep
         header_line_3 = '\t'.join([str(_convert_header_key_value_to_type(key, self[key])) for key in _HEADER_KEYS]) + os.linesep
 
+        format_adjustment = '\t' if add_trailing_tab else ''
+
         coordinate_labels = _COORDINATE_LABELS[:data_format_count]
         markers_header = [entry for marker in self['Markers'] for entry in [marker, '', '']]
         marker_sub_heading = [f'{coordinate}{i + 1}' for i in range(len(self['Markers'])) for coordinate in coordinate_labels]
-        data_header_line_1 = 'Frame#\tTime\t' + '\t'.join(markers_header) + '\t' + os.linesep
-        data_header_line_2 = '\t\t' + '\t'.join(marker_sub_heading) + '\t' + os.linesep
+        data_header_line_1 = 'Frame#\tTime\t' + '\t'.join(markers_header) + format_adjustment + os.linesep
+        data_header_line_2 = '\t\t' + '\t'.join(marker_sub_heading) + format_adjustment + os.linesep
 
         blank_line = os.linesep
 
@@ -299,7 +308,7 @@ class TRCData(dict):
                 time, line_data = self[frame]
                 values = ['' if math.isnan(v) else f'{v:.5f}' for values in line_data for v in values]
                 numeric_values = '\t'.join(values)
-                f.write(f'{frame}\t{time:.3f}\t{numeric_values}\t{os.linesep}')
+                f.write(f'{frame}\t{time:.3f}\t{numeric_values}{format_adjustment}{os.linesep}')
 
 
 # #!/usr/bin/env python
