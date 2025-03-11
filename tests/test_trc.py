@@ -208,6 +208,22 @@ class TestStoreTRC(unittest.TestCase):
 
         os.remove(output_file)
 
+    def test_save_file_06(self):
+        output_file = os.path.join(resource_path, 'c3d_test_file_03_out.trc')
+        data = TRCData()
+        data.import_from(os.path.join(resource_path, 'c3d_test_file_03.c3d'))
+        data.save(output_file, add_trailing_tab=True)
+
+        # Check that the missing coordinates were written as empty strings.
+        with open(output_file, 'r') as file:
+            lines = file.readlines()
+        for line in lines[6:]:
+            values = line.strip('\n').strip('\r').split('\t')
+            self.assertEqual(27, len(values))
+            self.assertEqual(13, values.count(''))
+
+        os.remove(output_file)
+
 
 if __name__ == '__main__':
     unittest.main()
