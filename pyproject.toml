@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools_scm>=8.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools-git-versioning]
+enabled = true
+
+[project]
+name = "trc-data-reader"
+dynamic = ["version"]
+keywords = ["TRC", "Track", "Row", "Column", "Motion Capture"]
+readme = "README.rst"
+license = {file = "LICENSE"}
+authors = [
+    { name="Hugh Sorby", email="h.sorby@auckland.ac.nz" },
+]
+dependencies = [
+    "c3d"
+]
+description = "A package for reading track row column (trc) motion capture data."
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+
+[project.urls]
+Repository = "https://github.com/hsorby/trc-data-reader"
+
+[tool.setuptools_scm]
