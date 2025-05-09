@@ -1,4 +1,5 @@
 import os
+import re
 import math
 
 import c3d
@@ -211,14 +212,14 @@ class TRCData(dict):
     
             # Set frame numbers.
             self['Frame#'] = [i for i in range(reader.header.first_frame, reader.header.last_frame + 1)]
-    
+
+            point_group = reader.get('POINT')
             if filter_output is None:
                 filter_output = ['ANGLES', 'FORCES', 'MOMENTS', 'POWERS', 'SCALARS']
             if label_params is None:
-                label_params = ['LABELS', 'LABELS2']
+                label_params = [key for key in point_group.param_keys() if re.fullmatch(r'LABELS\d*', key)]
     
             # Filter out model outputs (Angles, Forces, Moments, Powers, Scalars) from point labels.
-            point_group = reader.get('POINT')
             model_outputs = set()
             for param in filter_output:
                 if param in point_group.param_keys():
