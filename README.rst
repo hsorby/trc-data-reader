@@ -19,7 +19,7 @@ TRC data reader captures the motion capture data and puts it into a dict like ob
 
 TRC data reader can read motion capture data from file or from a multi-line string.
 
-For a valid trc file or multi-line data string the following keys will be present (among others):
+For a valid TRC file or multi-line data string the following keys will be present (among others):
 
 - FileName
 - DataFormat

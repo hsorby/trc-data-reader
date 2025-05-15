@@ -17,7 +17,7 @@ authors = [
 dependencies = [
     "c3d"
 ]
-description = "A package for reading track row column (trc) motion capture data."
+description = "A package for reading track row column (TRC) motion capture data."
 requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
