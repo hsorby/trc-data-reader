@@ -11,7 +11,7 @@ on:
 jobs:
   test-build-and-release-package:
     if: github.repository == 'hsorby/trc-data-reader'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     name: Release package
     permissions:
       contents: write
