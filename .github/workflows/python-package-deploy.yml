@@ -18,7 +18,7 @@ jobs:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
       - name: Release Python package
-        uses: hsorby/release-python-package-action@v1
+        uses: hsorby/release-python-package-action@v2
         with:
           pypi-package-name: trc-data-reader
           run-tests: unittest
