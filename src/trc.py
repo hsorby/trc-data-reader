@@ -64,7 +64,7 @@ class TRCData(dict):
             line = line.strip()
             if current_line_number == 1:
                 # File Header 1
-                sections = line.split('\t')
+                sections = re.split(r'[\t ]+', line)
                 if len(sections) != 4:
                     raise IOError('File format invalid: Header line 1 does not have four tab delimited sections.')
                 self[sections[0]] = sections[1]
