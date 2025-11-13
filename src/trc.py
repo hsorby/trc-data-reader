@@ -11,6 +11,10 @@ _HEADER_TYPES = [float, float, int, int, str, float, int, int]
 _COORDINATE_LABELS = ['X', 'Y', 'Z']
 
 
+class TRCFormatError(Exception):
+    pass
+
+
 def _convert_header_key_value_to_type(key, value):
     index = _HEADER_KEYS.index(key)
     if _HEADER_TYPES[index] is float:
@@ -66,7 +70,7 @@ class TRCData(dict):
                 # File Header 1
                 sections = line.split(maxsplit=3)
                 if len(sections) != 4:
-                    raise IOError('File format invalid: Header line 1 does not have four tab delimited sections.')
+                    raise TRCFormatError('File format invalid: Header line 1 does not have four tab delimited sections.')
                 self[sections[0]] = sections[1]
                 self['DataFormat'] = sections[2]
                 data_format_count = len(sections[2].split('/'))
@@ -84,15 +88,15 @@ class TRCData(dict):
                         else:
                             self[key] = float(file_header_data[index])
                 else:
-                    raise IOError('File format invalid: File header keys count (%d) is not equal to file header '
+                    raise TRCFormatError('File format invalid: File header keys count (%d) is not equal to file header '
                                   'data count (%d)' % (len(file_header_keys), len(file_header_data)))
             elif current_line_number == 4:
                 # Data Header 1
                 data_header_markers = line.split()
                 if data_header_markers[0] != 'Frame#':
-                    raise IOError('File format invalid: Data header does not start with "Frame#".')
+                    raise TRCFormatError('File format invalid: Data header does not start with "Frame#".')
                 if data_header_markers[1] != 'Time':
-                    raise IOError('File format invalid: Data header in position 2 is not "Time".')
+                    raise TRCFormatError('File format invalid: Data header in position 2 is not "Time".')
 
                 self['Frame#'] = []
                 self['Time'] = []
@@ -102,7 +106,7 @@ class TRCData(dict):
                 expected_sub_markers = int(self['NumMarkers']) * data_format_count
 
                 if expected_sub_markers != len(data_header_sub_marker):
-                    raise IOError('File format invalid: Data header marker count (%d) is not equal to data header '
+                    raise TRCFormatError('File format invalid: Data header marker count (%d) is not equal to data header '
                                   'sub-marker count (%d)' % (len(data_header_markers), len(data_header_sub_marker)))
 
                 # Remove 'Frame#' and 'Time' from array of markers.
@@ -135,7 +139,7 @@ class TRCData(dict):
                             # We have reached the end of the specified frames
                             continue
                     except ValueError:
-                        raise IOError(
+                        raise TRCFormatError(
                             f"File format invalid: "
                             f"Data frame length is {len(self['Frame#'])}, "
                             f"Expected {self['NumFrames']} frames."
@@ -161,7 +165,7 @@ class TRCData(dict):
                         self[frame] = (time, line_data)
                         self._append_per_label_data(markers, line_data)
                     else:
-                        raise IOError('File format invalid: Data frame %d does not match the data format' % len_section)
+                        raise TRCFormatError('File format invalid: Data frame %d does not match the data format' % len_section)
 
     def parse(self, data, line_sep=os.linesep, verbose=False):
         """
