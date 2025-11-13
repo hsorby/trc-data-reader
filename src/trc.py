@@ -4,9 +4,9 @@ import math
 
 import c3d
 
-
 _REQUIRED_HEADER_KEYS = ['DataRate', 'CameraRate', 'NumFrames', 'NumMarkers', 'Units', 'OrigDataRate']
-_HEADER_KEYS = ['DataRate', 'CameraRate', 'NumFrames', 'NumMarkers', 'Units', 'OrigDataRate', 'OrigDataStartFrame', 'OrigNumFrames']
+_HEADER_KEYS = ['DataRate', 'CameraRate', 'NumFrames', 'NumMarkers', 'Units', 'OrigDataRate', 'OrigDataStartFrame',
+                'OrigNumFrames']
 _HEADER_TYPES = [float, float, int, int, str, float, int, int]
 _COORDINATE_LABELS = ['X', 'Y', 'Z']
 
@@ -134,9 +134,9 @@ class TRCData(dict):
                             continue
                         else:
                             raise IOError(
-                            f"File format invalid: "
-                            f"Data frame length is {len(self['Frame#'])}, "
-                            f"Expected {self['NumFrames']} frames."
+                                f"File format invalid: "
+                                f"Data frame length is {len(self['Frame#'])}, "
+                                f"Expected {self['NumFrames']} frames."
                             )
 
                     time = float(sections.pop(0))
@@ -203,7 +203,7 @@ class TRCData(dict):
             self['PathFileType'] = 3
             self['DataFormat'] = "(X/Y/Z)"
             self['FileName'] = os.path.basename(filename)
-    
+
             # Set file header values.
             self['DataRate'] = reader.header.frame_rate
             self['CameraRate'] = reader.header.frame_rate
@@ -212,7 +212,7 @@ class TRCData(dict):
             self['OrigDataRate'] = reader.header.frame_rate
             self['OrigDataStartFrame'] = reader.header.first_frame
             self['OrigNumFrames'] = reader.header.last_frame - reader.header.first_frame + 1
-    
+
             # Set frame numbers.
             self['Frame#'] = [i for i in range(reader.header.first_frame, reader.header.last_frame + 1)]
 
@@ -221,7 +221,7 @@ class TRCData(dict):
                 filter_output = ['ANGLES', 'FORCES', 'MOMENTS', 'POWERS', 'SCALARS']
             if label_params is None:
                 label_params = [key for key in point_group.param_keys() if re.fullmatch(r'LABELS\d*', key)]
-    
+
             # Filter out model outputs (Angles, Forces, Moments, Powers, Scalars) from point labels.
             model_outputs = set()
             for param in filter_output:
@@ -230,9 +230,10 @@ class TRCData(dict):
             point_labels = []
             for param in label_params:
                 if param in point_group.param_keys():
-                    filtered_labels = [None if label in model_outputs else label.strip() for label in point_group.get(param).string_array]
+                    filtered_labels = [None if label in model_outputs else label.strip() for label in
+                                       point_group.get(param).string_array]
                     point_labels.extend(filtered_labels)
-    
+
             # Set marker labels.
             self['Markers'] = [label for label in point_labels if label]
             self['NumMarkers'] = len(self['Markers'])
@@ -285,13 +286,15 @@ class TRCData(dict):
         data_format_count = len(self['DataFormat'].split('/'))
 
         header_line_2 = '\t'.join(_HEADER_KEYS) + os.linesep
-        header_line_3 = '\t'.join([str(_convert_header_key_value_to_type(key, self[key])) for key in _HEADER_KEYS]) + os.linesep
+        header_line_3 = '\t'.join(
+            [str(_convert_header_key_value_to_type(key, self[key])) for key in _HEADER_KEYS]) + os.linesep
 
         format_adjustment = '\t' if add_trailing_tab else ''
 
         coordinate_labels = _COORDINATE_LABELS[:data_format_count]
         markers_header = [entry for marker in self['Markers'] for entry in [marker, '', '']]
-        marker_sub_heading = [f'{coordinate}{i + 1}' for i in range(len(self['Markers'])) for coordinate in coordinate_labels]
+        marker_sub_heading = [f'{coordinate}{i + 1}' for i in range(len(self['Markers'])) for coordinate in
+                              coordinate_labels]
         data_header_line_1 = 'Frame#\tTime\t' + '\t'.join(markers_header) + format_adjustment + os.linesep
         data_header_line_2 = '\t\t' + '\t'.join(marker_sub_heading) + format_adjustment + os.linesep
 
@@ -313,7 +316,6 @@ class TRCData(dict):
                 values = ['' if math.isnan(v) else f'{v:.5f}' for values in line_data for v in values]
                 numeric_values = '\t'.join(values)
                 f.write(f'{frame}\t{time:.3f}\t{numeric_values}{format_adjustment}{os.linesep}')
-
 
 # #!/usr/bin/env python
 # '''This creates an app to launch a python script. The app is
