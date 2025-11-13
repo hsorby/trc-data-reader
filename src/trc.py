@@ -52,7 +52,7 @@ class TRCData(dict):
         for index, marker_data in enumerate(data):
             self[markers[index]] += [marker_data]
 
-    def _process_contents(self, contents):
+    def _process_contents(self, contents, verbose):
         markers = []
         file_header_keys = []
         data_header_markers = []
@@ -64,7 +64,7 @@ class TRCData(dict):
             line = line.strip()
             if current_line_number == 1:
                 # File Header 1
-                sections = re.split(r'[\t ]+', line, maxsplit=3)
+                sections = line.split(maxsplit=3)
                 if len(sections) != 4:
                     raise IOError('File format invalid: Header line 1 does not have four tab delimited sections.')
                 self[sections[0]] = sections[1]
@@ -73,10 +73,10 @@ class TRCData(dict):
                 self['FileName'] = sections[3]
             elif current_line_number == 2:
                 # File Header 2
-                file_header_keys = line.split('\t')
+                file_header_keys = line.split()
             elif current_line_number == 3:
                 # File Header 3
-                file_header_data = line.split('\t')
+                file_header_data = line.split()
                 if len(file_header_keys) == len(file_header_data):
                     for index, key in enumerate(file_header_keys):
                         if key == 'Units':
@@ -88,7 +88,7 @@ class TRCData(dict):
                                   'data count (%d)' % (len(file_header_keys), len(file_header_data)))
             elif current_line_number == 4:
                 # Data Header 1
-                data_header_markers = line.split('\t')
+                data_header_markers = line.split()
                 if data_header_markers[0] != 'Frame#':
                     raise IOError('File format invalid: Data header does not start with "Frame#".')
                 if data_header_markers[1] != 'Time':
@@ -98,8 +98,10 @@ class TRCData(dict):
                 self['Time'] = []
             elif current_line_number == 5:
                 # Data Header 1
-                data_header_sub_marker = line.split('\t')
-                if len(data_header_markers) != len(data_header_sub_marker):
+                data_header_sub_marker = line.split()
+                expected_sub_markers = int(self['NumMarkers']) * data_format_count
+
+                if expected_sub_markers != len(data_header_sub_marker):
                     raise IOError('File format invalid: Data header marker count (%d) is not equal to data header '
                                   'sub-marker count (%d)' % (len(data_header_markers), len(data_header_sub_marker)))
 
@@ -123,21 +125,21 @@ class TRCData(dict):
                     header_read_successfully = True
                 # Data section
                 if header_read_successfully:
-                    sections = line.split('\t')
+                    sections = line.split()
 
                     try:
                         frame = int(sections.pop(0))
                         self['Frame#'].append(frame)
-                    except ValueError:
+                    except IndexError:
                         if int(self['NumFrames']) == len(self['Frame#']):
                             # We have reached the end of the specified frames
                             continue
-                        else:
-                            raise IOError(
-                                f"File format invalid: "
-                                f"Data frame length is {len(self['Frame#'])}, "
-                                f"Expected {self['NumFrames']} frames."
-                            )
+                    except ValueError:
+                        raise IOError(
+                            f"File format invalid: "
+                            f"Data frame length is {len(self['Frame#'])}, "
+                            f"Expected {self['NumFrames']} frames."
+                        )
 
                     time = float(sections.pop(0))
                     self['Time'].append(time)
@@ -146,8 +148,9 @@ class TRCData(dict):
                     len_section = len(sections)
                     expected_entries = len(line_data) * data_format_count
                     if len_section > expected_entries:
-                        print(f'Bad data line, frame: {frame}, time: {time}, expected entries: {expected_entries},'
-                              f' actual entries: {len_section}')
+                        if verbose:
+                            print(f'Bad data line, frame: {frame}, time: {time}, expected entries: {expected_entries},'
+                                  f' actual entries: {len_section}')
                         self[frame] = (time, line_data)
                         self._append_per_label_data(markers, line_data)
                     elif len_section % data_format_count == 0:
@@ -160,32 +163,34 @@ class TRCData(dict):
                     else:
                         raise IOError('File format invalid: Data frame %d does not match the data format' % len_section)
 
-    def parse(self, data, line_sep=os.linesep):
+    def parse(self, data, line_sep=os.linesep, verbose=False):
         """
         Parse trc formatted motion capture data into a dictionary like object.
 
         :param data: The multi-line string of the data to parse.
         :param line_sep: The line separator to split lines with.
+        :param verbose: Boolean for having verbose output, default is False.
         """
         contents = data.split(line_sep)
         if len(contents) == 1:
             data.replace('\r\n', '\n')
             contents = data.split('\n')
-        self._process_contents(contents)
+        self._process_contents(contents, verbose)
 
-    def load(self, filename, encoding="utf-8", errors="strict"):
+    def load(self, filename, encoding="utf-8", errors="strict", verbose=False):
         """
         Load a trc motion capture data file into a dictionary like object.
 
         :param filename: The name of the file to load.
         :param encoding: Default encoding is 'utf-8', see https://docs.python.org/3/library/codecs.html#standard-encodings.
         :param errors: Default error handling is 'strict',see https://docs.python.org/3/library/codecs.html#error-handlers.
+        :param verbose: Boolean for having verbose output, default is False.
         """
         with open(filename, 'rb') as f:
             contents = f.read().decode(encoding=encoding, errors=errors)
 
         contents = contents.split(os.linesep)
-        self._process_contents(contents)
+        self._process_contents(contents, verbose)
 
     def _import_from_c3d(self, filename, filter_output=None, label_params=None):
         """
