@@ -9,7 +9,7 @@ enabled = true
 name = "trc-data-reader"
 dynamic = ["version"]
 keywords = ["TRC", "Track", "Row", "Column", "Motion Capture"]
-readme = "README.rst"
+readme = "README.md"
 license = {file = "LICENSE"}
 authors = [
     { name="Hugh Sorby", email="h.sorby@auckland.ac.nz" },
