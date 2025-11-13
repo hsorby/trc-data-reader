@@ -64,7 +64,7 @@ class TRCData(dict):
             line = line.strip()
             if current_line_number == 1:
                 # File Header 1
-                sections = line.split('\t')
+                sections = re.split(r'[\t ]+', line, maxsplit=3)
                 if len(sections) != 4:
                     raise IOError('File format invalid: Header line 1 does not have four tab delimited sections.')
                 self[sections[0]] = sections[1]
@@ -134,7 +134,10 @@ class TRCData(dict):
                             continue
                         else:
                             raise IOError(
-                                f"File format invalid: Data frame {len(self['Frame#'])} is not valid.")
+                            f"File format invalid: "
+                            f"Data frame length is {len(self['Frame#'])}, "
+                            f"Expected {self['NumFrames']} frames."
+                            )
 
                     time = float(sections.pop(0))
                     self['Time'].append(time)
