@@ -148,7 +148,7 @@ class TRCData(dict):
                     time = float(sections.pop(0))
                     self['Time'].append(time)
 
-                    line_data = [[float('nan')] * data_format_count] * int(self['NumMarkers'])
+                    line_data = [[float('nan')] * data_format_count for _ in range(int(self['NumMarkers']))]
                     len_section = len(sections)
                     expected_entries = len(line_data) * data_format_count
                     if len_section > expected_entries:
