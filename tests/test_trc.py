@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from trc import TRCData
+from trc import TRCData, TRCFormatError
 
 try:
     from .data_store import TEST_DATA_01, TEST_DATA_02, TEST_DATA_03, TEST_DATA_04, \
@@ -102,32 +102,32 @@ class TestTRCData(unittest.TestCase):
 
     def test_parse_data_02(self):
         data = TRCData()
-        with self.assertRaises(IOError):
+        with self.assertRaises(TRCFormatError):
             data.parse(TEST_DATA_02)
 
     def test_parse_data_03(self):
         data = TRCData()
-        with self.assertRaises(IOError):
+        with self.assertRaises(TRCFormatError):
             data.parse(TEST_DATA_03)
 
     def test_parse_data_04(self):
         data = TRCData()
-        with self.assertRaises(IOError):
+        with self.assertRaises(TRCFormatError):
             data.parse(TEST_DATA_04)
 
     def test_parse_data_05(self):
         data = TRCData()
-        with self.assertRaises(IOError):
+        with self.assertRaises(TRCFormatError):
             data.parse(TEST_DATA_05)
 
     def test_parse_data_06(self):
         data = TRCData()
-        with self.assertRaises(IOError):
+        with self.assertRaises(TRCFormatError):
             data.parse(TEST_DATA_06)
 
     def test_parse_data_07(self):
         data = TRCData()
-        with self.assertRaises(IOError):
+        with self.assertRaises(TRCFormatError):
             data.parse(TEST_DATA_07)
 
     def test_parse_data_08(self):
@@ -139,7 +139,7 @@ class TestTRCData(unittest.TestCase):
 
     def test_parse_data_09(self):
         data = TRCData()
-        with self.assertRaises(IOError):
+        with self.assertRaises(TRCFormatError):
             data.parse(TEST_DATA_09)
 
     def test_parse_data_10(self):
