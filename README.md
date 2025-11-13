@@ -1,6 +1,6 @@
 
-TRC Data Reader
-===============
+# TRC Data Reader
+
 
 [![License](https://img.shields.io/badge/license-Apache%202-yellow)](https://opensource.org/licenses/Apache-2.0)
 [![PyPI version](https://badge.fury.io/py/trc-data-reader.svg)](https://pypi.org/project/trc-data-reader/)
@@ -14,7 +14,6 @@ TRC data reader captures the motion capture data and puts it into a dict like ob
 pip install trc-data-reader
 ```
 
-
 TRC data reader can read motion capture data from file or from a multi-line string.
 
 For a valid TRC file or multi-line data string the following keys will be present (among others):
@@ -26,14 +25,13 @@ For a valid TRC file or multi-line data string the following keys will be presen
 - NumFrames
 - NumMarkers
 
-Usage
------
+## Usage
 
 ```python
- from trc import TRCData
+from trc import TRCData
 
- mocap_data = TRCData()
- mocap_data.load('/path/to/file/')
+mocap_data = TRCData()
+mocap_data.load('/path/to/file/')
 
- num_frames = mocap_data['NumFrames']
+num_frames = mocap_data['NumFrames']
 ```
