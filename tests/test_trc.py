@@ -6,11 +6,11 @@ from trc import TRCData
 try:
     from .data_store import TEST_DATA_01, TEST_DATA_02, TEST_DATA_03, TEST_DATA_04, \
         TEST_DATA_05, TEST_DATA_06, TEST_DATA_07, TEST_DATA_08, TEST_DATA_09, TEST_DATA_10, \
-        TEST_DATA_11
+        TEST_DATA_11, TEST_DATA_12
 except ImportError:
     from data_store import TEST_DATA_01, TEST_DATA_02, TEST_DATA_03, TEST_DATA_04, \
         TEST_DATA_05, TEST_DATA_06, TEST_DATA_07, TEST_DATA_08, TEST_DATA_09, TEST_DATA_10, \
-        TEST_DATA_11
+        TEST_DATA_11, TEST_DATA_12
 
 here = os.path.dirname(os.path.realpath(__file__))
 resource_path = os.path.join(here, 'resources')
@@ -54,6 +54,15 @@ class TestTRCResources(unittest.TestCase):
         self.assertIn('FileName', data)
         self.assertEqual(4, data['NumFrames'])
         self.assertEqual(8, len(data['Markers']))
+
+    def test_load_file_06(self):
+        data = TRCData()
+        data.load(os.path.join(resource_path, 'test_file_06_2tab_one_space.trc'))
+
+        # Check that we have correctly loaded the missing coordinates.
+        self.assertIn('FileName', data)
+        self.assertEqual(1091, data['NumFrames'])
+        self.assertEqual(9, len(data['Markers']))
 
 
 class TestC3DImport(unittest.TestCase):
@@ -148,6 +157,13 @@ class TestTRCData(unittest.TestCase):
         self.assertEqual(2, data['NumFrames'])
         self.assertEqual(2, len(data['Markers']))
 
+    def test_parse_data_12(self):
+        # Test parsing a file with missing data at the end of the line.
+        data = TRCData()
+        data.parse(TEST_DATA_12)
+        self.assertIn('FileName', data)
+        self.assertEqual(3, data['NumFrames'])
+        self.assertEqual(9, len(data['Markers']))
 
 class TestStoreTRC(unittest.TestCase):
 
