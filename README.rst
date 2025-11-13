@@ -19,7 +19,7 @@ TRC data reader captures the motion capture data and puts it into a dict like ob
 
 ```bash
 pip install trc-data-reader
-``
+```
 
 TRC data reader can read motion capture data from file or from a multi-line string.
 
