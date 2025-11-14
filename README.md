@@ -138,4 +138,12 @@ coverage run --source src -m unittest discover
 coverage report -m
 ```
 
-This library aims for 100% coverage of its lines of code.
+This project strives to maintain 100% code coverage.
+To help meet this goal, we would like for all pull requests to include tests for new functionality or bug fixes.
+
+* **New Features:** Should include tests to validate the new behavior.
+
+* **Bug Fixes:** Should include a regression test (one that fails without your fix and passes with it).
+
+Pull requests that do not include tests that lower the overall code coverage will be asked for updates before being merged.
+Minor code improvements should not, in general, require any new tests in a pull request.
