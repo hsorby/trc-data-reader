@@ -1,3 +1,4 @@
+import itertools
 import logging
 import os
 import re
@@ -58,118 +59,120 @@ class TRCData(dict):
             self[markers[index]] += [marker_data]
 
     def _process_contents(self, contents, verbose):
-        markers = []
-        file_header_keys = []
-        data_header_markers = []
-        data_format_count = 0
-        header_read_successfully = False
-        current_line_number = 0
-        for line in contents:
-            current_line_number += 1
-            line = line.strip()
-            if current_line_number == 1:
-                # File Header 1
-                sections = line.split(maxsplit=3)
-                if len(sections) != 4:
-                    raise TRCFormatError(
-                        'File format invalid: Header line 1 does not have four space delimited sections.')
-                self[sections[0]] = sections[1]
-                self['DataFormat'] = sections[2]
-                data_format_count = len(sections[2].split('/'))
-                self['FileName'] = sections[3]
-            elif current_line_number == 2:
-                # File Header 2
-                file_header_keys = line.split()
-            elif current_line_number == 3:
-                # File Header 3
-                file_header_data = line.split()
-                if len(file_header_keys) == len(file_header_data):
-                    for index, key in enumerate(file_header_keys):
-                        value = file_header_data[index]
-                        self[key] = value if key == 'Units' else float(value)
+        lines_iter = iter(contents)
+        current_line_num = 0
+
+        # Process file header.
+        try:
+            current_line_num += 1
+            sections = next(lines_iter).split(maxsplit=3)
+            if len(sections) != 4:
+                raise TRCFormatError(
+                    'File format invalid: Header line 1 does not have four space delimited sections.')
+            self[sections[0]] = sections[1]
+            self['DataFormat'] = sections[2]
+            data_format_count = len(sections[2].split('/'))
+            self['FileName'] = sections[3]
+
+            current_line_num += 1
+            header_keys = next(lines_iter).split()
+            current_line_num += 1
+            header_values = next(lines_iter).split()
+
+            if len(header_keys) != len(header_values):
+                raise TRCFormatError('File format invalid: File header keys count (%d) is not equal to file header '
+                                     'data count (%d)' % (len(header_keys), len(header_values)))
+
+            for key, val in zip(header_keys, header_values):
+                target_type = _HEADER_TYPE_MAP.get(key, float)
+                self[key] = target_type(val)
+
+            current_line_num += 1
+            data_header_markers = next(lines_iter).split()
+            if data_header_markers[0] != 'Frame#':
+                raise TRCFormatError('File format invalid: Data header does not start with "Frame#".')
+            if data_header_markers[1] != 'Time':
+                raise TRCFormatError('File format invalid: Data header in position 2 is not "Time".')
+
+            self['Frame#'] = []
+            self['Time'] = []
+
+            # Extract marker names (skipping Frame# and Time)
+            marker_names = [m.strip() for m in data_header_markers[2:] if m.strip()]
+            self['Markers'] = marker_names
+
+            # Initialize lists for each marker
+            for m in marker_names:
+                self[m] = []
+
+            current_line_num += 1
+            sub_marker_headers = next(lines_iter).split()
+            expected_sub_markers_count = int(self['NumMarkers']) * data_format_count
+            if expected_sub_markers_count != len(sub_marker_headers):
+                raise TRCFormatError(
+                    'File format invalid: Data header marker count (%d) is not equal to data header '
+                    'sub-marker count (%d)' % (len(data_header_markers), len(sub_marker_headers)))
+
+            try:
+                first_data_line = next(lines_iter).strip()
+                if not first_data_line:
+                    # It was blank, proceed to next
+                    current_line_num += 1
                 else:
-                    raise TRCFormatError('File format invalid: File header keys count (%d) is not equal to file header '
-                                         'data count (%d)' % (len(file_header_keys), len(file_header_data)))
-            elif current_line_number == 4:
-                # Data Header 1
-                data_header_markers = line.split()
-                if data_header_markers[0] != 'Frame#':
-                    raise TRCFormatError('File format invalid: Data header does not start with "Frame#".')
-                if data_header_markers[1] != 'Time':
-                    raise TRCFormatError('File format invalid: Data header in position 2 is not "Time".')
+                    # It wasn't blank, this is actual data. Put it back into a chain to process.
+                    lines_iter = itertools.chain([first_data_line], lines_iter)
+            except StopIteration:
+                raise TRCFormatError(f"File ended without specifying any data.")
 
-                self['Frame#'] = []
-                self['Time'] = []
-            elif current_line_number == 5:
-                # Data Header 1
-                data_header_sub_marker = line.split()
-                expected_sub_markers = int(self['NumMarkers']) * data_format_count
+        except StopIteration:
+            raise TRCFormatError(f"File ended unexpectedly at line {current_line_num} during header parsing.")
 
-                if expected_sub_markers != len(data_header_sub_marker):
-                    raise TRCFormatError(
-                        'File format invalid: Data header marker count (%d) is not equal to data header '
-                        'sub-marker count (%d)' % (len(data_header_markers), len(data_header_sub_marker)))
+        for line in lines_iter:
+            current_line_num += 1
+            sections = line.split()
+            if len(sections) == 0:
+                continue
 
-                # Remove 'Frame#' and 'Time' from array of markers.
-                data_header_markers.pop(0)
-                data_header_markers.pop(0)
-                markers = []
-                for marker in data_header_markers:
-                    marker = marker.strip()
-                    if len(marker):
-                        self[marker] = []
-                        markers.append(marker)
+            # Parse Frame
+            try:
+                frame = int(sections.pop(0))
+                self['Frame#'].append(frame)
+            except ValueError:
+                raise TRCFormatError(
+                    f"File format invalid: "
+                    f"Data frame length is {len(self['Frame#'])}, "
+                    f"Expected {self['NumFrames']} frames."
+                )
 
-                self['Markers'] = markers
-            elif current_line_number == 6 and len(line) == 0:
-                # Blank line
-                header_read_successfully = True
+            # Parse Time
+            try:
+                time = float(sections.pop(0))
+                self['Time'].append(time)
+            except IndexError:
+                raise TRCFormatError(f"Missing time value at line {current_line_num}")
+            except ValueError:
+                raise TRCFormatError(f"Invalid time value at line {current_line_num}")
+
+            line_data = [[float('nan')] * data_format_count for _ in range(int(self['NumMarkers']))]
+            len_section = len(sections)
+            expected_entries = len(line_data) * data_format_count
+            if len_section > expected_entries:
+                if verbose:
+                    logger.warning(
+                        f'Bad data line, frame: {frame}, time: {time}, expected entries: {expected_entries},'
+                        f' actual entries: {len_section}')
+                self[frame] = (time, line_data)
+                self._append_per_label_data(marker_names, line_data)
+            elif len_section % data_format_count == 0:
+                for index, place in enumerate(range(0, len_section, data_format_count)):
+                    coordinates = _convert_coordinates(sections[place:place + data_format_count])
+                    line_data[index] = coordinates
+
+                self[frame] = (time, line_data)
+                self._append_per_label_data(marker_names, line_data)
             else:
-                # Some files don't have a blank line at line six
-                if current_line_number == 6:
-                    header_read_successfully = True
-                # Data section
-                if header_read_successfully:
-                    sections = line.split()
-                    frame = -1
-
-                    try:
-                        frame = int(sections.pop(0))
-                        self['Frame#'].append(frame)
-                    except IndexError:
-                        if int(self['NumFrames']) == len(self['Frame#']):
-                            # We have reached the end of the specified frames
-                            continue
-                    except ValueError:
-                        raise TRCFormatError(
-                            f"File format invalid: "
-                            f"Data frame length is {len(self['Frame#'])}, "
-                            f"Expected {self['NumFrames']} frames."
-                        )
-
-                    time = float(sections.pop(0))
-                    self['Time'].append(time)
-
-                    line_data = [[float('nan')] * data_format_count for _ in range(int(self['NumMarkers']))]
-                    len_section = len(sections)
-                    expected_entries = len(line_data) * data_format_count
-                    if len_section > expected_entries:
-                        if verbose:
-                            logger.warning(
-                                f'Bad data line, frame: {frame}, time: {time}, expected entries: {expected_entries},'
-                                f' actual entries: {len_section}')
-                        self[frame] = (time, line_data)
-                        self._append_per_label_data(markers, line_data)
-                    elif len_section % data_format_count == 0:
-                        for index, place in enumerate(range(0, len_section, data_format_count)):
-                            coordinates = _convert_coordinates(sections[place:place + data_format_count])
-                            line_data[index] = coordinates
-
-                        self[frame] = (time, line_data)
-                        self._append_per_label_data(markers, line_data)
-                    else:
-                        raise TRCFormatError(
-                            'File format invalid: Data frame %d does not match the data format' % len_section)
+                raise TRCFormatError(
+                    'File format invalid: Data frame %d does not match the data format' % len_section)
 
     def parse(self, data, line_sep=os.linesep, verbose=False):
         """

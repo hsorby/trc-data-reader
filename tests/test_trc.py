@@ -8,11 +8,11 @@ from trc import TRCData, TRCFormatError
 try:
     from .data_store import TEST_DATA_01, TEST_DATA_02, TEST_DATA_03, TEST_DATA_04, \
         TEST_DATA_05, TEST_DATA_06, TEST_DATA_07, TEST_DATA_08, TEST_DATA_09, TEST_DATA_10, \
-        TEST_DATA_11, TEST_DATA_12
+        TEST_DATA_11, TEST_DATA_12, TEST_DATA_13, TEST_DATA_14, TEST_DATA_15, TEST_DATA_16
 except ImportError:
     from data_store import TEST_DATA_01, TEST_DATA_02, TEST_DATA_03, TEST_DATA_04, \
         TEST_DATA_05, TEST_DATA_06, TEST_DATA_07, TEST_DATA_08, TEST_DATA_09, TEST_DATA_10, \
-        TEST_DATA_11, TEST_DATA_12
+        TEST_DATA_11, TEST_DATA_12, TEST_DATA_13, TEST_DATA_14, TEST_DATA_15, TEST_DATA_16
 
 here = os.path.dirname(os.path.realpath(__file__))
 resource_path = os.path.join(here, 'resources')
@@ -64,7 +64,8 @@ class TestTRCResources(unittest.TestCase):
             data.load(os.path.join(resource_path, 'test_file_03.trc'), verbose=True)
 
         captured_output = f.getvalue()
-        self.assertIn('Bad data line, frame: 134, time: 2.217, expected entries: 138, actual entries: 141', captured_output)
+        self.assertIn('Bad data line, frame: 134, time: 2.217, expected entries: 138, actual entries: 141',
+                      captured_output)
 
     def test_load_file_04(self):
         data = TRCData()
@@ -192,6 +193,31 @@ class TestTRCData(unittest.TestCase):
         self.assertIn('FileName', data)
         self.assertEqual(3, data['NumFrames'])
         self.assertEqual(9, len(data['Markers']))
+
+    def test_parse_data_13(self):
+        # Test parsing a file with missing data at the end of the line.
+        data = TRCData()
+        with self.assertRaises(TRCFormatError):
+            data.parse(TEST_DATA_13)
+
+    def test_parse_data_14(self):
+        # Test parsing a file with missing data at the end of the line.
+        data = TRCData()
+        with self.assertRaises(TRCFormatError):
+            data.parse(TEST_DATA_14)
+
+    def test_parse_data_15(self):
+        # Test parsing a file with missing data at the end of the line.
+        data = TRCData()
+        with self.assertRaises(TRCFormatError):
+            data.parse(TEST_DATA_15)
+
+    def test_parse_data_16(self):
+        # Test parsing a file with missing data at the end of the line.
+        data = TRCData()
+        with self.assertRaises(TRCFormatError):
+            data.parse(TEST_DATA_16)
+
 
 class TestStoreTRC(unittest.TestCase):
 
