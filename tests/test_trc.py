@@ -57,15 +57,17 @@ class TestTRCResources(unittest.TestCase):
         self.assertEqual(46, len(data['Markers']))
 
     def test_load_file_03a(self):
-        f = io.StringIO()
+        logger_name = 'trc'
 
         data = TRCData()
-        with redirect_stderr(f):
+        with self.assertLogs(logger_name, level='WARNING') as cm:
             data.load(os.path.join(resource_path, 'test_file_03.trc'), verbose=True)
 
-        captured_output = f.getvalue()
-        self.assertIn('Bad data line, frame: 134, time: 2.217, expected entries: 138, actual entries: 141',
-                      captured_output)
+        self.assertEqual(37, len(cm.records))
+        self.assertEqual(
+            'WARNING:trc:Bad data line, frame: 134, time: 2.217, expected entries: 138, actual entries: 141',
+            cm.output[0]
+        )
 
     def test_load_file_04(self):
         data = TRCData()
