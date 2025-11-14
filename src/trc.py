@@ -1,8 +1,11 @@
+import logging
 import os
 import re
 import math
 
 import c3d
+
+logger = logging.getLogger(__name__)
 
 _REQUIRED_HEADER_KEYS = ['DataRate', 'CameraRate', 'NumFrames', 'NumMarkers', 'Units', 'OrigDataRate']
 _HEADER_TYPE_MAP = {
@@ -68,7 +71,8 @@ class TRCData(dict):
                 # File Header 1
                 sections = line.split(maxsplit=3)
                 if len(sections) != 4:
-                    raise TRCFormatError('File format invalid: Header line 1 does not have four space delimited sections.')
+                    raise TRCFormatError(
+                        'File format invalid: Header line 1 does not have four space delimited sections.')
                 self[sections[0]] = sections[1]
                 self['DataFormat'] = sections[2]
                 data_format_count = len(sections[2].split('/'))
@@ -85,7 +89,7 @@ class TRCData(dict):
                         self[key] = value if key == 'Units' else float(value)
                 else:
                     raise TRCFormatError('File format invalid: File header keys count (%d) is not equal to file header '
-                                  'data count (%d)' % (len(file_header_keys), len(file_header_data)))
+                                         'data count (%d)' % (len(file_header_keys), len(file_header_data)))
             elif current_line_number == 4:
                 # Data Header 1
                 data_header_markers = line.split()
@@ -102,8 +106,9 @@ class TRCData(dict):
                 expected_sub_markers = int(self['NumMarkers']) * data_format_count
 
                 if expected_sub_markers != len(data_header_sub_marker):
-                    raise TRCFormatError('File format invalid: Data header marker count (%d) is not equal to data header '
-                                  'sub-marker count (%d)' % (len(data_header_markers), len(data_header_sub_marker)))
+                    raise TRCFormatError(
+                        'File format invalid: Data header marker count (%d) is not equal to data header '
+                        'sub-marker count (%d)' % (len(data_header_markers), len(data_header_sub_marker)))
 
                 # Remove 'Frame#' and 'Time' from array of markers.
                 data_header_markers.pop(0)
@@ -126,6 +131,7 @@ class TRCData(dict):
                 # Data section
                 if header_read_successfully:
                     sections = line.split()
+                    frame = -1
 
                     try:
                         frame = int(sections.pop(0))
@@ -149,8 +155,9 @@ class TRCData(dict):
                     expected_entries = len(line_data) * data_format_count
                     if len_section > expected_entries:
                         if verbose:
-                            print(f'Bad data line, frame: {frame}, time: {time}, expected entries: {expected_entries},'
-                                  f' actual entries: {len_section}')
+                            logger.warning(
+                                f'Bad data line, frame: {frame}, time: {time}, expected entries: {expected_entries},'
+                                f' actual entries: {len_section}')
                         self[frame] = (time, line_data)
                         self._append_per_label_data(markers, line_data)
                     elif len_section % data_format_count == 0:
@@ -161,7 +168,8 @@ class TRCData(dict):
                         self[frame] = (time, line_data)
                         self._append_per_label_data(markers, line_data)
                     else:
-                        raise TRCFormatError('File format invalid: Data frame %d does not match the data format' % len_section)
+                        raise TRCFormatError(
+                            'File format invalid: Data frame %d does not match the data format' % len_section)
 
     def parse(self, data, line_sep=os.linesep, verbose=False):
         """

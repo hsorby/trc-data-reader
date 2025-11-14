@@ -1,7 +1,7 @@
 import io
 import os
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr
 
 from trc import TRCData, TRCFormatError
 
@@ -60,7 +60,7 @@ class TestTRCResources(unittest.TestCase):
         f = io.StringIO()
 
         data = TRCData()
-        with redirect_stdout(f):
+        with redirect_stderr(f):
             data.load(os.path.join(resource_path, 'test_file_03.trc'), verbose=True)
 
         captured_output = f.getvalue()
