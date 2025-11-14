@@ -55,6 +55,8 @@ class TestTRCResources(unittest.TestCase):
         self.assertIn('FileName', data)
         self.assertEqual(466, data['NumFrames'])
         self.assertEqual(46, len(data['Markers']))
+
+    def test_load_file_03a(self):
         f = io.StringIO()
 
         data = TRCData()
