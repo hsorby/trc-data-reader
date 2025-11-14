@@ -1,5 +1,7 @@
+import io
 import os
 import unittest
+from contextlib import redirect_stdout
 
 from trc import TRCData, TRCFormatError
 
@@ -53,6 +55,14 @@ class TestTRCResources(unittest.TestCase):
         self.assertIn('FileName', data)
         self.assertEqual(466, data['NumFrames'])
         self.assertEqual(46, len(data['Markers']))
+        f = io.StringIO()
+
+        data = TRCData()
+        with redirect_stdout(f):
+            data.load(os.path.join(resource_path, 'test_file_03.trc'), verbose=True)
+
+        captured_output = f.getvalue()
+        self.assertIn('Bad data line, frame: 134, time: 2.217, expected entries: 138, actual entries: 141', captured_output)
 
     def test_load_file_04(self):
         data = TRCData()
@@ -64,6 +74,7 @@ class TestTRCResources(unittest.TestCase):
     def test_load_file_05(self):
         data = TRCData()
         data.load(os.path.join(resource_path, 'test_file_05.trc'))
+        self.assertIn('FileName', data)
 
         # Check that we have correctly loaded the missing coordinates.
         self.assertIn('FileName', data)
