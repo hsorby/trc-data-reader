@@ -68,7 +68,7 @@ class TRCData(dict):
                 # File Header 1
                 sections = line.split(maxsplit=3)
                 if len(sections) != 4:
-                    raise TRCFormatError('File format invalid: Header line 1 does not have four tab delimited sections.')
+                    raise TRCFormatError('File format invalid: Header line 1 does not have four space delimited sections.')
                 self[sections[0]] = sections[1]
                 self['DataFormat'] = sections[2]
                 data_format_count = len(sections[2].split('/'))
@@ -81,10 +81,8 @@ class TRCData(dict):
                 file_header_data = line.split()
                 if len(file_header_keys) == len(file_header_data):
                     for index, key in enumerate(file_header_keys):
-                        if key == 'Units':
-                            self[key] = file_header_data[index]
-                        else:
-                            self[key] = float(file_header_data[index])
+                        value = file_header_data[index]
+                        self[key] = value if key == 'Units' else float(value)
                 else:
                     raise TRCFormatError('File format invalid: File header keys count (%d) is not equal to file header '
                                   'data count (%d)' % (len(file_header_keys), len(file_header_data)))
