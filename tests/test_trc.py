@@ -24,6 +24,21 @@ class TestTRCResources(unittest.TestCase):
         self.assertIn('FileName', data)
         self.assertEqual(4, data['NumFrames'])
         self.assertEqual(2, len(data['Markers']))
+        self.assertEqual('HeadTop', data['Markers'][0])
+        self.assertEqual('ForeHead', data['Markers'][1])
+
+        expected_data = [
+            (0.000, [[-2894.1709, 1663.1084, -3255.51221], [-2830.51074, 1535.71509, -3161.38867]]),
+            (0.017, [[-2894.22632, 1663.09448, -3255.7373], [-2830.58838, 1535.5957, -3161.22119]]),
+            (0.033, [[-2894.30054, 1663.0531, -3255.97241], [-2830.67212, 1535.46863, -3161.08936]]),
+            (0.050, [[-2894.37915, 1662.97754, -3256.2356], [-2830.76855, 1535.33289, -3161.00732]]),
+        ]
+        for i in range(1, 5):
+            expected_time = expected_data[i - 1][0]
+            expected_values = expected_data[i - 1][1]
+            time, values = data[i]
+            self.assertEqual(expected_time, time)
+            self.assertEqual(expected_values, values)
 
     def test_load_file_02(self):
         data = TRCData()

@@ -25,6 +25,9 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
 ]
 
+[project.optional-dependencies]
+test = ["coverage"]
+
 [project.urls]
 Repository = "https://github.com/hsorby/trc-data-reader"
 
