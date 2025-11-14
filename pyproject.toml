@@ -10,7 +10,7 @@ name = "trc-data-reader"
 dynamic = ["version"]
 keywords = ["TRC", "Track", "Row", "Column", "Motion Capture"]
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "Apache-2.0"
 authors = [
     { name="Hugh Sorby", email="h.sorby@auckland.ac.nz" },
 ]
