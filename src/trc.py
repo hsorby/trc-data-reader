@@ -5,24 +5,22 @@ import math
 import c3d
 
 _REQUIRED_HEADER_KEYS = ['DataRate', 'CameraRate', 'NumFrames', 'NumMarkers', 'Units', 'OrigDataRate']
-_HEADER_KEYS = ['DataRate', 'CameraRate', 'NumFrames', 'NumMarkers', 'Units', 'OrigDataRate', 'OrigDataStartFrame',
-                'OrigNumFrames']
-_HEADER_TYPES = [float, float, int, int, str, float, int, int]
+_HEADER_TYPE_MAP = {
+    'DataRate': float,
+    'CameraRate': float,
+    'NumFrames': int,
+    'NumMarkers': int,
+    'Units': str,
+    'OrigDataRate': float,
+    'OrigDataStartFrame': int,
+    'OrigNumFrames': int
+}
+
 _COORDINATE_LABELS = ['X', 'Y', 'Z']
 
 
 class TRCFormatError(Exception):
     pass
-
-
-def _convert_header_key_value_to_type(key, value):
-    index = _HEADER_KEYS.index(key)
-    if _HEADER_TYPES[index] is float:
-        return float(value)
-    elif _HEADER_TYPES[index] is int:
-        return int(value)
-
-    return str(value)
 
 
 def _convert_to_number(string):
@@ -288,15 +286,15 @@ class TRCData(dict):
             raise NotImplementedError('Do not know this file type.')
 
         # Check that all known header keys are present
-        for header_key in _HEADER_KEYS:
+        for header_key in _HEADER_TYPE_MAP.keys():
             if header_key not in self:
                 raise KeyError(f'Could not find required header key: {header_key}')
 
         data_format_count = len(self['DataFormat'].split('/'))
 
-        header_line_2 = '\t'.join(_HEADER_KEYS) + os.linesep
-        header_line_3 = '\t'.join(
-            [str(_convert_header_key_value_to_type(key, self[key])) for key in _HEADER_KEYS]) + os.linesep
+        keys_to_write = [k for k in _HEADER_TYPE_MAP.keys()]
+        header_line_2 = '\t'.join(keys_to_write) + '\n'
+        header_line_3 = '\t'.join([str(self[k]) for k in keys_to_write]) + '\n'
 
         format_adjustment = '\t' if add_trailing_tab else ''
 
