@@ -1,13 +1,12 @@
 
 # TRC Data Reader
 
-
 [![License](https://img.shields.io/badge/license-Apache%202-yellow)](https://opensource.org/licenses/Apache-2.0)
 [![PyPI version](https://badge.fury.io/py/trc-data-reader.svg)](https://pypi.org/project/trc-data-reader/)
 [![Build Status](https://github.com/hsorby/trc-data-reader/workflows/trc-data-reader/badge.svg)](https://pypi.org/project/trc-data-reader/)
 [![Coverage](https://raw.githubusercontent.com/hsorby/badges/main/trc-data-reader/coverage.svg)](https://pypi.org/project/trc-data-reader/)
 
-A lightweight, dependency-free Python package for reading, processing, and writing track row column (TRC) motion capture data.
+A lightweight Python package for reading, processing, and writing track row column (TRC) motion capture data. It also includes interoperability with binary **C3D** files (via the [c3d](https://c3d.rtfd.org/) package), allowing for easy conversion between formats.
 
 The `TRCData` object behaves like a standard Python dictionary, providing simple, direct access to all header metadata and time-series marker data.
 
